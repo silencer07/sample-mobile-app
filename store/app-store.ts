@@ -46,15 +46,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
         if (resp.ok) {
             set(state => ({...state, status: FetchStatus.SUCCESS}))
             const data: FetchResponse = await resp.json()
-            console.log("data", JSON.stringify(data))
+            // console.log("data", JSON.stringify(data))
             const isSameQuery = query === get().query
             const articles = isSameQuery ? [...get().articles, ...data.articles] : data.articles
-            console.log("articles: ", articles)
+            // console.log("articles: ", articles)
             const pageNumber = isSameQuery ? get().pageNumber + 1 : 1
 
             set(state => ({...state, articles: articles, pageNumber, query, status: FetchStatus.IDLE}))
         } else {
-            console.log("2")
             set(state => ({...state, query, status: FetchStatus.ERROR}))
         }
     }
