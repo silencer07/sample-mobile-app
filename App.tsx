@@ -1,35 +1,11 @@
-import React, {useEffect, useRef} from "react";
-import {
-    Divider,
-    extendTheme,
-    FlatList,
-    HStack,
-    Icon,
-    Input,
-    NativeBaseProvider,
-    Spinner,
-    Switch,
-    Text,
-    useColorMode,
-    VStack,
-} from "native-base";
-import {MaterialIcons} from "@expo/vector-icons";
+import React, {useCallback, useEffect, useRef} from "react";
+import {FlatList, HStack, NativeBaseProvider, Spinner, Switch, Text, useColorMode, VStack,} from "native-base";
 import {SafeAreaView} from "react-native";
 import useAppStore, {FetchStatus} from "./store/app-store";
+import SearchComponent from "./components/search-component";
+import NewsItem from "./components/news-item";
 
-// Define the config
-const config = {
-    useSystemColorMode: false,
-    initialColorMode: "dark",
-};
 
-// extend the theme
-export const theme = extendTheme({config});
-type MyThemeType = typeof theme;
-declare module "native-base" {
-    interface ICustomTheme extends MyThemeType {
-    }
-}
 export default function App() {
     const appStore = useAppStore()
     const {articles, fetchArticles, status} = appStore
@@ -41,38 +17,30 @@ export default function App() {
         }
     }, [status])
 
+    const onSearchQueryEntered = useCallback(async (e: any) => {
+        console.log(e.nativeEvent.text)
+        searchQueryRef.current = e.nativeEvent.text
+        await fetchArticles(searchQueryRef.current)
+    }, [])
+
+    const onReachEnd = useCallback(async () => {
+        console.log("reach end")
+        await fetchArticles(searchQueryRef.current)
+    }, [])
+
     return (
         <NativeBaseProvider>
             <SafeAreaView>
                 <VStack w="100%" space={5} alignSelf="center">
-                    <Input placeholder="Search News" width="100%" borderRadius="4" py="3" px="1"
-                           fontSize="14"
-                           InputLeftElement={
-                               <Icon m="2" ml="3" size="6" color="gray.400" as={<MaterialIcons name="search"/>}/>
-                           }
-                           onSubmitEditing={async (e) => {
-                               console.log(e.nativeEvent.text)
-                               searchQueryRef.current = e.nativeEvent.text
-                               await fetchArticles(searchQueryRef.current)
-                           }}
-                    />
-                    <FlatList data={articles}
+                    <SearchComponent onSubmitEditing={onSearchQueryEntered}/>
+                    <FlatList
+                        data={articles}
                               renderItem={({item, index}) => (
-                                  <VStack key={`article=${index}`}>
-                                      <Text fontWeight={"bold"}>
-                                          {item.title}
-                                      </Text>
-                                      <Text>
-                                          {item.description}
-                                      </Text>
-                                      <Divider/>
-                                  </VStack>
+                                  <NewsItem key={`article=${index}`} item={item}/>
                               )}
-                              onEndReached={async () => {
-                                  console.log("reach end")
-                                  await fetchArticles(searchQueryRef.current)
-                              }}
-                              ListFooterComponent={status === FetchStatus.FETCHING ? <Spinner color='emerald.500' size='lg' /> : null}
+                              onEndReached={onReachEnd}
+                              ListFooterComponent={status === FetchStatus.FETCHING ?
+                                  <Spinner color='emerald.500' size='lg'/> : null}
                     />
                 </VStack>
             </SafeAreaView>
