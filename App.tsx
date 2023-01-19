@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {
     Divider,
     extendTheme,
@@ -6,7 +6,8 @@ import {
     HStack,
     Icon,
     Input,
-    NativeBaseProvider, Spinner,
+    NativeBaseProvider,
+    Spinner,
     Switch,
     Text,
     useColorMode,
@@ -33,6 +34,13 @@ export default function App() {
     const appStore = useAppStore()
     const {articles, fetchArticles, status} = appStore
     const searchQueryRef = useRef<string>("")
+
+    useEffect(() => {
+        if (status === FetchStatus.ERROR) {
+            alert("Problem while fetching news! Please try again later.")
+        }
+    }, [status])
+
     return (
         <NativeBaseProvider>
             <SafeAreaView>
